@@ -15,6 +15,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use colored::control;
 use colored::Colorize;
 use commands::blame::{blame_command, BlameOptions};
+use commands::conflicts::{conflicts_command, ConflictsOptions};
 use commands::context::{context_command, ContextOptions};
 use commands::diff::{diff_command, DiffOptions, OutputFormat};
 use commands::entities::{entities_command, EntitiesOptions};
@@ -333,6 +334,20 @@ enum Commands {
         #[arg(long)]
         no_default_excludes: bool,
     },
+    /// Detect semantic conflicts between two branches (entities changed divergently on both sides)
+    Conflicts {
+        /// Base branch/ref (the merge target)
+        #[arg(long, default_value = "main")]
+        base: String,
+
+        /// Head branch/ref to check against base
+        #[arg(long, default_value = "HEAD")]
+        head: String,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
+    },
     /// Show lifetime diff statistics
     Stats,
     /// Start the MCP server (stdin/stdout transport)
@@ -382,6 +397,7 @@ fn telemetry_command_name(command: &Option<Commands>) -> Option<&'static str> {
         Some(Commands::Entities { .. }) => "entities",
         Some(Commands::Orient { .. }) => "orient",
         Some(Commands::Context { .. }) => "context",
+        Some(Commands::Conflicts { .. }) => "conflicts",
         Some(Commands::Stats) => "stats",
         Some(Commands::Mcp) => "mcp",
         Some(Commands::Setup) => "setup",
@@ -644,6 +660,17 @@ fn main() {
                 file_exts,
                 no_cache,
                 no_default_excludes,
+            });
+        }
+        Some(Commands::Conflicts { base, head, json }) => {
+            conflicts_command(ConflictsOptions {
+                cwd: std::env::current_dir()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string(),
+                base,
+                head,
+                json,
             });
         }
         Some(Commands::Stats) => {

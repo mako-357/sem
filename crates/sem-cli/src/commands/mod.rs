@@ -1,5 +1,6 @@
 pub mod blame;
 pub mod cloud;
+pub mod conflicts;
 pub mod context;
 pub mod diff;
 pub mod entities;
